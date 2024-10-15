@@ -1,4 +1,5 @@
 # Project Goal
+
 To check how sanas code computes hydrogen bonding in relation with pbc and shifted boxes.
 
 ## Python Running and Requirements
@@ -22,6 +23,7 @@ For the python environment, the following is advised:
 python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade ase
+pip install pandas
 ```
 
 Checking the install
@@ -43,15 +45,20 @@ kiwisolver      1.4.7
 matplotlib      3.9.2
 numpy           2.1.2
 packaging       24.1
+pandas          2.2.3
 pillow          10.4.0
 pip             22.0.2
 pyparsing       3.2.0
 python-dateutil 2.9.0.post0
+pytz            2024.2
 scipy           1.14.1
 setuptools      59.6.0
 six             1.16.0
+tzdata          2024.2
 ```
+
 ## Running GATeWAY
+
 A by Jelle compiled GATeWAY version is used to run, however unadjusted versions should result in the same.
 Run GATeWAY as:
 
