@@ -1,6 +1,9 @@
+"""
+This python code contains a simple comparrison class to compare two GATeWAY output folders.
+"""
+
 import os
 import argparse
-import sys
 import shutil
 import tempfile
 import subprocess
@@ -9,6 +12,9 @@ import numpy as np
 import pandas as pd
 
 class Gateway:
+    """
+    Gateway class to filter GATeWAY output and only get the for Jelle relevant parts
+    """
     def __init__(self, name : str):
         # read the gateway output files
         self.oh_list = self.grep_fast_filter(name + "/" + name +
@@ -17,14 +23,11 @@ class Gateway:
                                              "_HBs_stats.txt", r"\bwp\b", cols=[0, 1, 2])
         self.check_timsteps()
 
-    def process_path(self, folder: str) -> str:
-        # Construct the full path correctly
-        folder = os.path.join(os.getcwd(), folder)
-        return folder
-
     def grep_fast_filter(self, filename: str, pattern: str, cols: List[int]) -> np.ndarray:
-        # Construct the command to run repgrep without line number output
-
+        """ 
+        Runs the grep of ripgrep commands to filter files efficiently.
+        Utelyzes system memory to be fast
+        """
         # Check if 'rg' is availab
         rg_available = shutil.which('rg') is not None
 
@@ -33,13 +36,14 @@ class Gateway:
             command = ['rg', '-N', pattern, os.path.join(filename)]
         else:
             command = ['grep', pattern, os.path.join(filename)]
-        result = subprocess.run(command, capture_output=True, text=True)
 
-        # Debug: Print error output if the command failed
-        if result.returncode != 0:
-            print(f"Command failed with return code {result.returncode}")
-            print(f"Error output: {result.stderr}")
-            raise RuntimeError(f"Error running {' '.join(command)}")
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+        except subprocess.CalledProcessError as e:
+            # Handle the error here
+            print(f"Command failed with return code {e.returncode}")
+            print(f"Error output: {e.stderr}")
+            raise RuntimeError(f"Error running {' '.join(command)}") from e
 
         max_size = 1024 * 1024 * 1024  # 1GB in bytes
         with tempfile.SpooledTemporaryFile(mode='w+', max_size=max_size) as temp_file:
@@ -53,6 +57,10 @@ class Gateway:
         return array
 
     def check_timsteps(self):
+        """
+        Checks every timestep what the number of hbonds is and
+        mustates the class with the updated result.
+        """
         unique_timesteps, start_indices = np.unique(self.oh_list[:, 0], return_index=True)
         end_indices = np.r_[start_indices[1:], len(self.oh_list)]
         n_max = unique_timesteps.shape[0]
@@ -85,6 +93,7 @@ class Gateway:
             self.n_hb[t] = np.count_nonzero(self.hb_list[:, 0] == t)
 
 if __name__ == "__main__":
+    # Parse inputs and provie error messaging when wrong inputs are used.
     parser = argparse.ArgumentParser(description='postprocesses two GATeWAY outputs and compares')
     parser.add_argument('intputfolder1', type=str, help='Name of first inputfolder, should be ' +
                         'GATeWAY output folder')
@@ -93,8 +102,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # postprocess both outputs
     version1 = Gateway(args.intputfolder1)
     version2 = Gateway(args.intputfolder2)
 
+    # print results to compare
     print(f"completed comparing '{args.intputfolder1}' and '{args.intputfolder2}'")
     print(f"number of hbonds is '{version1.n_hb}' and '{version2.n_hb}'")
