@@ -1,20 +1,20 @@
 import os
+import argparse
 import sys
 import shutil
 import tempfile
 import subprocess
-import h5py # pandas
-from typing import List, Tuple
+from typing import List
 import numpy as np
 import pandas as pd
 
 class Gateway:
-    def __init__(self, folder, name, verbose=False):
-        self.folder = self.process_path(folder)
-
+    def __init__(self, name : str):
         # read the gateway output files
-        self.oh_list = self.grep_fast_filter(name + "_OH_stats.txt", r"\s1\s*$", cols=[0, 2])
-        self.hb_list = self.grep_fast_filter(name +"_HBs_stats.txt", r"\bwp\b", cols=[0, 1, 2])
+        self.oh_list = self.grep_fast_filter(name + "/" + name +
+                                             "_OH_stats.txt", r"\s1\s*$", cols=[0, 2])
+        self.hb_list = self.grep_fast_filter(name+ "/" + name +
+                                             "_HBs_stats.txt", r"\bwp\b", cols=[0, 1, 2])
         self.check_timsteps()
 
     def process_path(self, folder: str) -> str:
@@ -30,9 +30,9 @@ class Gateway:
 
         # Construct the command based on availability
         if rg_available:
-            command = ['rg', '-N', pattern, os.path.join(self.folder, filename)]
+            command = ['rg', '-N', pattern, os.path.join(filename)]
         else:
-            command = ['grep', pattern, os.path.join(self.folder, filename)]
+            command = ['grep', pattern, os.path.join(filename)]
         result = subprocess.run(command, capture_output=True, text=True)
 
         # Debug: Print error output if the command failed
@@ -81,9 +81,20 @@ class Gateway:
 
             last_oh = self.i_oh[t]
             # Create mask to count hydrogen bonds
-            
+
             self.n_hb[t] = np.count_nonzero(self.hb_list[:, 0] == t)
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='postprocesses two GATeWAY outputs and compares')
+    parser.add_argument('intputfolder1', type=str, help='Name of first inputfolder, should be ' +
+                        'GATeWAY output folder')
+    parser.add_argument('intputfolder2', type=str, help='Name of second inputfolder, should be ' +
+                        'GATeWAY output folder')
 
-a = Gateway('origional', name="traj_unprocessed_wrapped")
-b = Gateway('recentered', name="traj_unprocessed_wrapped")
+    args = parser.parse_args()
+
+    version1 = Gateway(args.intputfolder1)
+    version2 = Gateway(args.intputfolder2)
+
+    print(f"completed comparing '{args.intputfolder1}' and '{args.intputfolder2}'")
+    print(f"number of hbonds is '{version1.n_hb}' and '{version2.n_hb}'")
