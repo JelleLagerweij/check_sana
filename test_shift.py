@@ -95,17 +95,18 @@ class Gateway:
 if __name__ == "__main__":
     # Parse inputs and provie error messaging when wrong inputs are used.
     parser = argparse.ArgumentParser(description='postprocesses two GATeWAY outputs and compares')
-    parser.add_argument('intputfolder1', type=str, help='Name of first inputfolder, should be ' +
+    parser.add_argument('inputfolder1', type=str, help='Name of first inputfolder, should be ' +
                         'GATeWAY output folder')
-    parser.add_argument('intputfolder2', type=str, help='Name of second inputfolder, should be ' +
+    parser.add_argument('inputfolder2', type=str, help='Name of second inputfolder, should be ' +
                         'GATeWAY output folder')
 
     args = parser.parse_args()
 
     # postprocess both outputs
-    version1 = Gateway(args.intputfolder1)
-    version2 = Gateway(args.intputfolder2)
+    version1 = Gateway(args.inputfolder1)
+    version2 = Gateway(args.inputfolder2)
 
     # print results to compare
-    print(f"completed comparing '{args.intputfolder1}' and '{args.intputfolder2}'")
-    print(f"number of hbonds is '{version1.n_hb}' and '{version2.n_hb}'")
+    print(f"completed comparing '{args.inputfolder1}' and '{args.inputfolder2}'")
+    for t in range(min(version1.n_hb.shape[0], version2.n_hb.shape[0])):
+        print(f"hbs({t}) = '            {version1.n_hb[t]}'    and   '{version2.n_hb[t]}'")

@@ -70,6 +70,7 @@ In this case, the correct run would be:
 
 ```shell
 /path/to/GATeWAY/bin/interface -w traj1.xyz -x 14.899721 -y 14.899721 -z  14.899721 -d 7
+rm -f graph*
 /path/to/GATeWAY/bin/interface -w traj2.xyz -x 14.899721 -y 14.899721 -z  14.899721 -d 7
-
+rm -f graph*
 ```

@@ -4,6 +4,7 @@ This code
 
 """
 import argparse
+from typing import List
 from ase import io, Atoms
 
 
@@ -14,29 +15,29 @@ def validate_filename(filename : str) -> str:
     return filename
 
 
-def read_file(inputfile : str) -> Atoms:
+def read_file(inputfile : str) -> List[Atoms]:
     """Reads the .xyz file to extract types and coordinates"""
     try:
-        atoms = io.read(inputfile)
+        frames = io.read(inputfile, format='xyz', index=':')
     except Exception as e:
         raise RuntimeError(f"Failed to read the file '{inputfile}'") from e
-    return atoms
+    return frames
 
 
-def shift_positions(lbox : float, atoms : Atoms) -> Atoms:
+def shift_positions(lbox : float, frames : List[Atoms]) -> List[Atoms]:
     """Shifts the box by half a boxsize in all directions,
     but wrapps all back to periodic boundary conditions."""
-    shift = lbox/2
+    for frame in frames:
+        shift = - frame.positions[0]
+        frame.positions += shift  # occurs on all indexes of the array
+        frame.positions = frame.positions % lbox  # wrapps all back to fit in the pbc box
+    return frames
 
-    atoms.positions += shift  # occurs on all indexes of the array
-    atoms.positions = atoms.positions % lbox  # wrapps all back to fit in the pbc box using modulus
-    return atoms
 
-
-def save_file(outputfile : str, atoms : Atoms):
+def save_file(outputfile : str, frames : List[Atoms]):
     """Writes outputfile from by half the boxsize shifted inputfile"""
     try:
-        io.write(outputfile, atoms)
+        io.write(outputfile, frames, format='xyz')
     except Exception as e:
         raise RuntimeError(f"Failed to save the file '{outputfile}'") from e
 
