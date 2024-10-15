@@ -25,12 +25,16 @@ def read_file(inputfile : str) -> List[Atoms]:
 
 
 def shift_positions(lbox : float, frames : List[Atoms]) -> List[Atoms]:
-    """Shifts the box by half a boxsize in all directions,
-    but wrapps all back to periodic boundary conditions."""
+    """Shifts the box in such a way that atom n is the one shifted back
+    to 0, 0, 0"""
+    i = 0
     for frame in frames:
-        shift = - frame.positions[0]
+        if i > frame.positions.shape[0]:
+            i = 0
+        shift = - frame.positions[i]
         frame.positions += shift  # occurs on all indexes of the array
         frame.positions = frame.positions % lbox  # wrapps all back to fit in the pbc box
+        i += 1
     return frames
 
 
